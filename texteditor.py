@@ -9,9 +9,7 @@ class MyThread(QtCore.QThread):
 
     def run(self):
         counter = 1
-
         new = True
-
         self.new_window.emit(new)
 
         while counter:
@@ -52,13 +50,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.show()
 
-    def commit_data(self):
-        pass
-
     def create_menu_bar(self):
 
         self.menu_bar = self.menuBar()
-
         file_menu = self.menu_bar.addMenu("File")
 
         def new_file():
@@ -81,8 +75,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         def open_file():
             if (self.maybe_save()):
-
                 filename = QtWidgets.QFileDialog.getOpenFileName(self)
+                
                 if not filename is None:
                     self.load_file(filename)
 
@@ -126,7 +120,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
             if save():
                 thread.change_value.connect(som)
-
             thread.start()
 
         autosave_action = QtWidgets.QAction(
@@ -329,7 +322,6 @@ class MainWindow(QtWidgets.QMainWindow):
         cursor = self.text_editor.textCursor()
 
         line_number = cursor.blockNumber() + 1
-
         column_number = cursor.columnNumber()
 
         self.status_bar.showMessage(
@@ -339,7 +331,6 @@ class MainWindow(QtWidgets.QMainWindow):
         cursor = self.text_editor.textCursor()
 
         line_number = cursor.blockNumber() + 1
-
         column_number = cursor.columnNumber()
 
         self.status_bar = self.statusBar()
@@ -355,7 +346,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
             for line in file:
                 text_in_file += line
-
+                
         return text_in_file
 
     def load_file(self, filename):
@@ -443,8 +434,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if geometry is None:
             availableGeometry = self.screen().availableGeometry()
-            self.resize(availableGeometry.width()/3, availableGeometry.he
-                        ()/2)
+            self.resize(availableGeometry.width()/3, availableGeometry.height()/2)
             self.move((availableGeometry.width() - self.width()) / 2,
                       (availableGeometry.height() - self.height())/2)
 
