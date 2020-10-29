@@ -1,24 +1,19 @@
-import sys
 from time import sleep
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 
 class MyThread(QtCore.QThread):
+    
     change_value = QtCore.pyqtSignal(int)
-    new_window = QtCore.pyqtSignal(bool)
 
     def run(self):
+
         counter = 1
-
-        new = True
-
-        self.new_window.emit(new)
 
         while counter:
             sleep(8)
             self.change_value.emit(counter)
             counter += 1
-
 
 class MainWindow(QtWidgets.QMainWindow):
 
@@ -31,14 +26,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_UI(self):
         QtCore.QCoreApplication.setOrganizationName("King Inc")
-        QtCore.QCoreApplication.setApplicationName("Code Dragon")
-        QtCore.QCoreApplication.setApplicationVersion("0.0.7")
+        QtCore.QCoreApplication.setApplicationName("King's Editor")
+        QtCore.QCoreApplication.setApplicationVersion("0.0.8")
+        
 
-        self.window_title = "untitled[*] Code Dragon"
-        left, top, width, height = 100, 100, 800, 600
+        self.window_title = "untitled[*] - King's Editor"
         icon = QtGui.QIcon("dragon.svg")
+        width, height = 800, 600
         self.setWindowTitle(self.window_title)
-        self.setGeometry(left, top, width, height)
+        self.setMinimumSize(width, height)
         self.setWindowIcon(icon)
         self.create_menu_bar()
         self.create_editor()
@@ -52,9 +48,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.show()
 
-    def commit_data(self):
-        pass
-
     def create_menu_bar(self):
 
         self.menu_bar = self.menuBar()
@@ -66,28 +59,24 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.text_editor.clear()
                 self.set_current_file("")
 
-        new_file_action = QtWidgets.QAction(
-            QtGui.QIcon("file-alt.svg"), "New File", self)
+        new_file_action = QtWidgets.QAction(QtGui.QIcon("file-alt.svg"), "New File", self)
         new_file_action.setShortcut("Ctrl+N")
         new_file_action.triggered.connect(new_file)
 
         def new_window():
-            pass
+            new_win = MainWindow()
 
-        new_window_action = QtWidgets.QAction(
-            QtGui.QIcon("window-restore.svg"), "New Window", self)
+        new_window_action = QtWidgets.QAction(QtGui.QIcon("window-restore.svg"), "New Window", self)
         new_window_action.setShortcut("Ctrl+Shift+N")
         new_window_action.triggered.connect(new_window)
 
         def open_file():
             if (self.maybe_save()):
-
                 filename = QtWidgets.QFileDialog.getOpenFileName(self)
-                if not filename is None:
+                if not filename == "":
                     self.load_file(filename)
 
-        open_file_action = QtWidgets.QAction(
-            QtGui.QIcon("file-import.svg"), "Open File", self)
+        open_file_action = QtWidgets.QAction(QtGui.QIcon("file-import.svg"), "Open File", self)
         open_file_action.setShortcut("Ctrl+O")
         open_file_action.triggered.connect(open_file)
 
@@ -105,19 +94,18 @@ class MainWindow(QtWidgets.QMainWindow):
         def save_as():
             dialog = QtWidgets.QFileDialog(self)
             dialog.setWindowModality(QtCore.Qt.WindowModal)
-            dialog.setAcceptMode((QtWidgets.QFileDialog.AcceptSave))
+            dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
 
-            if dialog.exec_() != QtWidgets.QDialog.Accepted:
+            if (dialog.exec_() != QtWidgets.QDialog.Accepted):
                 return False
-            return self.save_file(dialog.selectedFiles()[0])
+            return self.save_file(filename=dialog.selectedFiles())
 
-        save_as_action = QtWidgets.QAction(
-            QtGui.QIcon("file-export.svg"), "Save as", self)
+        save_as_action = QtWidgets.QAction(QtGui.QIcon("file-export.svg"), "Save as", self)
         save_as_action.setShortcut("Ctrl+Shift+S")
         save_as_action.triggered.connect(save_as)
 
         def autosave():
-            thread = MyThread()
+            thread = MyThread(self)
 
             def som(num):
                 if num == 0:
@@ -129,21 +117,22 @@ class MainWindow(QtWidgets.QMainWindow):
 
             thread.start()
 
-        autosave_action = QtWidgets.QAction(
-            QtGui.QIcon("clock.svg"), "Autosave", self)
+        autosave_action = QtWidgets.QAction(QtGui.QIcon("clock.svg"), "Autosave", self)
         autosave_action.setShortcut("Ctrl+Alt+S")
         autosave_action.triggered.connect(autosave)
 
-        settings_action = QtWidgets.QAction(
-            QtGui.QIcon("cogs.svg"), "Settings", self)
+        settings_action = QtWidgets.QAction(QtGui.QIcon("cogs.svg"), "Settings", self)
         settings_action.setShortcut("Ctrl+,")
 
         exit_action = QtWidgets.QAction(QtGui.QIcon("times.svg"), "Exit", self)
         exit_action.setShortcut("Ctrl+F4")
         exit_action.triggered.connect(self.close)
 
-        file_actions = [new_file_action, new_window_action, "sep", open_file_action, "sep", save_action,
-                        save_as_action, autosave_action, "sep", settings_action, "sep", exit_action]
+        file_actions = [new_file_action, new_window_action, "sep", 
+                        open_file_action, "sep", 
+                        save_action, save_as_action, autosave_action, "sep", 
+                        settings_action, "sep", 
+                        exit_action]
 
         for action in file_actions:
             if action == "sep":
@@ -153,12 +142,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         edit_menu = self.menu_bar.addMenu("Edit")
 
-        undo_action = QtWidgets.QAction(
-            QtGui.QIcon("undo-alt.svg"), "Undo", self)
+        undo_action = QtWidgets.QAction(QtGui.QIcon("undo-alt.svg"), "Undo", self)
         undo_action.setShortcut("Ctrl+Z")
 
-        redo_action = QtWidgets.QAction(
-            QtGui.QIcon("redo-alt.svg"), "Redo", self)
+        redo_action = QtWidgets.QAction(QtGui.QIcon("redo-alt.svg"), "Redo", self)
         redo_action.setShortcut("Ctrl+Y")
 
         copy_action = QtWidgets.QAction(QtGui.QIcon("copy.svg"), "Copy", self)
@@ -169,20 +156,16 @@ class MainWindow(QtWidgets.QMainWindow):
         cut_action.setShortcut("Ctrl+X")
         cut_action.setEnabled(False)
 
-        paste_action = QtWidgets.QAction(
-            QtGui.QIcon("paste.svg"), "Paste", self)
+        paste_action = QtWidgets.QAction(QtGui.QIcon("paste.svg"), "Paste", self)
         paste_action.setShortcut("Ctrl+V")
 
-        delete_action = QtWidgets.QAction(
-            QtGui.QIcon("trash-alt.svg"), "Delete", self)
+        delete_action = QtWidgets.QAction(QtGui.QIcon("trash-alt.svg"), "Delete", self)
         delete_action.setShortcut("Del")
 
-        search_with_action = QtWidgets.QAction(
-            QtGui.QIcon("question.svg"), "Search with DDG", self)
+        search_with_action = QtWidgets.QAction(QtGui.QIcon("question.svg"), "Search with DDG", self)
         search_with_action.setShortcut("Ctrl+?")
 
-        find_action = QtWidgets.QAction(
-            QtGui.QIcon("search.svg"), "Find", self)
+        find_action = QtWidgets.QAction(QtGui.QIcon("search.svg"), "Find", self)
         find_action.setShortcut("Ctrl+F")
 
         replace_action = QtWidgets.QAction("Replace", self)
@@ -191,8 +174,7 @@ class MainWindow(QtWidgets.QMainWindow):
         goto_action = QtWidgets.QAction("Go to...", self)
         goto_action.setShortcut("Ctrl+G")
 
-        toggle_line_comment = QtWidgets.QAction(
-            QtGui.QIcon("hashtag.svg"), "Toggle line comment", self)
+        toggle_line_comment = QtWidgets.QAction(QtGui.QIcon("hashtag.svg"), "Toggle line comment", self)
         toggle_line_comment.setShortcut("Ctrl+/")
 
         toggle_block_comment = QtWidgets.QAction("Toggle block comment", self)
@@ -221,8 +203,11 @@ class MainWindow(QtWidgets.QMainWindow):
         move_line_up = QtWidgets.QAction("Move line up", self)
         move_line_down = QtWidgets.QAction("Move line down", self)
 
-        selection_actions = [select_all_action, "sep", duplicate_selection, "sep",
-                             copy_line_up, copy_line_down, "sep", move_line_up, move_line_down]
+        selection_actions = [select_all_action, "sep", 
+                            duplicate_selection, "sep",
+                            copy_line_up, copy_line_down, "sep", 
+                            move_line_up, move_line_down]
+
         for action in selection_actions:
             if action == "sep":
                 selection_menu.addSeparator()
@@ -260,45 +245,33 @@ class MainWindow(QtWidgets.QMainWindow):
         view_help_action = QtWidgets.QAction("View help", self)
         view_help_action.setShortcut("F1")
 
-        documentation_action = QtWidgets.QAction(
-            QtGui.QIcon("table.svg"), "Documentation", self)
+        documentation_action = QtWidgets.QAction(QtGui.QIcon("table.svg"), "Documentation", self)
 
-        release_notes_action = QtWidgets.QAction(
-            QtGui.QIcon("list.svg"), "Release notes", self)
+        release_notes_action = QtWidgets.QAction(QtGui.QIcon("list.svg"), "Release notes", self)
 
-        keybd_shortcut = QtWidgets.QAction(QtGui.QIcon(
-            "toolbox.svg"), "Keyboard shortcut reference", self)
+        keybd_shortcut = QtWidgets.QAction(QtGui.QIcon("toolbox.svg"), "Keyboard shortcut reference", self)
 
-        tips_and_tricks_action = QtWidgets.QAction(
-            QtGui.QIcon("info.svg"), "Tips and tricks", self)
+        tips_and_tricks_action = QtWidgets.QAction(QtGui.QIcon("info.svg"), "Tips and tricks", self)
 
-        join_us_action = QtWidgets.QAction(QtGui.QIcon(
-            "twitter.svg"), "Join us on twitter", self)
+        join_us_action = QtWidgets.QAction(QtGui.QIcon("twitter.svg"), "Join us on twitter", self)
 
-        feature_request_action = QtWidgets.QAction(
-            QtGui.QIcon("inbox.svg"), "Feature request", self)
+        feature_request_action = QtWidgets.QAction(QtGui.QIcon("inbox.svg"), "Feature request", self)
 
-        report_issue_action = QtWidgets.QAction(
-            QtGui.QIcon("sad-tear.svg"), "Report issue", self)
+        report_issue_action = QtWidgets.QAction(QtGui.QIcon("sad-tear.svg"), "Report issue", self)
 
-        view_license_action = QtWidgets.QAction(
-            QtGui.QIcon("thumbs-up.svg"), "View license", self)
+        view_license_action = QtWidgets.QAction(QtGui.QIcon("thumbs-up.svg"), "View license", self)
 
-        check_for_updates_action = QtWidgets.QAction(
-            QtGui.QIcon("level-up-alt.svg"), "Check for updates", self)
+        check_for_updates_action = QtWidgets.QAction(QtGui.QIcon("level-up-alt.svg"), "Check for updates", self)
 
-        send_feeback_action = QtWidgets.QAction(
-            QtGui.QIcon("medal.svg"), "Send feedback", self)
+        send_feeback_action = QtWidgets.QAction(QtGui.QIcon("medal.svg"), "Send feedback", self)
 
         def about_handler():
-
             about = self.read_file("about.txt")
 
             message = QtWidgets.QMessageBox()
             message.about(self, "About King's Editor", about)
 
-        about_action = QtWidgets.QAction(
-            QtGui.QIcon("info-circle.svg"), "About King's Editor", self)
+        about_action = QtWidgets.QAction(QtGui.QIcon("info-circle.svg"), "About King's Editor", self)
         about_action.triggered.connect(about_handler)
 
         help_actions = [view_help_action, documentation_action, release_notes_action, keybd_shortcut, tips_and_tricks_action, join_us_action,
@@ -332,8 +305,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         column_number = cursor.columnNumber()
 
-        self.status_bar.showMessage(
-            f"Line {line_number} | Col {column_number}")
+        self.status_bar.showMessage(f"Line {line_number} | Col {column_number}")
 
     def create_status_bar(self):
         cursor = self.text_editor.textCursor()
@@ -344,18 +316,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.status_bar = self.statusBar()
         self.status_bar.showMessage("Ready")
-        self.status_bar.showMessage(
-            f"Line {line_number} | Col {column_number}")
+        self.status_bar.showMessage(f"Line {line_number} | Col {column_number}")
 
     def read_file(self, filename):
-
         text_in_file = ""
 
         with open(filename) as file:
-
             for line in file:
                 text_in_file += line
-
         return text_in_file
 
     def load_file(self, filename):
@@ -388,11 +356,11 @@ class MainWindow(QtWidgets.QMainWindow):
         shown_name = self.current_file
 
         if self.current_file == "":
-            shown_name = "untitled.txt[*]"
-        if type(shown_name) == tuple:
+            shown_name = "untitled.txt[*] - King's Editor"
+        if type(shown_name) == tuple or type(shown_name) == list:
             shown_name = shown_name[0]
             shown_name = shown_name.split("/")
-            shown_name = shown_name[-1] + "[*]"
+            shown_name = shown_name[-1] + " - King's Editor[*]"
         self.setWindowFilePath(shown_name)
         self.setWindowTitle(shown_name)
 
@@ -403,12 +371,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if (file.open(QtCore.QIODevice.WriteOnly | QtCore.QIODevice.Text)):
             out = QtCore.QTextStream(file)
             out << self.text_editor.toPlainText()
-            self.setWindowTitle(f"{filename[0]}[*] - Code Dragon")
+            self.setWindowTitle(f"{filename[0]}[*] - King's Editor")
 
             if not (file.commit()):
-                error_message = f"Cannot write file {QtCore.QDir.toNativeSeparators(filename)}:\n{file.errorString()}"
+                error_message = f"Cannot write file {QtCore.QDir.toNativeSeparators(filename[0])}:\n{file.errorString()}"
         else:
-            error_message = f"Cannot open file {QtCore.QDir.toNativeSeparators(filename)} for writing:\n{file.errorString()}"
+            error_message = f"Cannot open file {QtCore.QDir.toNativeSeparators(filename[0])} for writing:\n{file.errorString()}"
 
         QtGui.QGuiApplication.restoreOverrideCursor()
 
@@ -465,6 +433,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def main():
+    import sys
+
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec_())
