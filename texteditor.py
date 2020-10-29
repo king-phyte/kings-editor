@@ -1,16 +1,14 @@
-import sys
 from time import sleep
 from PyQt5 import QtGui, QtWidgets, QtCore
 
 
 class MyThread(QtCore.QThread):
+
     change_value = QtCore.pyqtSignal(int)
-    new_window = QtCore.pyqtSignal(bool)
 
     def run(self):
+
         counter = 1
-        new = True
-        self.new_window.emit(new)
 
         while counter:
             sleep(8)
@@ -29,14 +27,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def init_UI(self):
         QtCore.QCoreApplication.setOrganizationName("King Inc")
-        QtCore.QCoreApplication.setApplicationName("Code Dragon")
-        QtCore.QCoreApplication.setApplicationVersion("0.0.7")
+        QtCore.QCoreApplication.setApplicationName("King's Editor")
+        QtCore.QCoreApplication.setApplicationVersion("0.0.8")
 
-        self.window_title = "untitled[*] Code Dragon"
-        left, top, width, height = 100, 100, 800, 600
+        self.window_title = "untitled[*] - King's Editor"
         icon = QtGui.QIcon("dragon.svg")
+        width, height = 800, 600
         self.setWindowTitle(self.window_title)
-        self.setGeometry(left, top, width, height)
+        self.setMinimumSize(width, height)
         self.setWindowIcon(icon)
         self.create_menu_bar()
         self.create_editor()
@@ -66,7 +64,7 @@ class MainWindow(QtWidgets.QMainWindow):
         new_file_action.triggered.connect(new_file)
 
         def new_window():
-            pass
+            new_win = MainWindow()
 
         new_window_action = QtWidgets.QAction(
             QtGui.QIcon("window-restore.svg"), "New Window", self)
@@ -76,8 +74,7 @@ class MainWindow(QtWidgets.QMainWindow):
         def open_file():
             if (self.maybe_save()):
                 filename = QtWidgets.QFileDialog.getOpenFileName(self)
-                
-                if not filename is None:
+                if not filename == "":
                     self.load_file(filename)
 
         open_file_action = QtWidgets.QAction(
@@ -99,11 +96,11 @@ class MainWindow(QtWidgets.QMainWindow):
         def save_as():
             dialog = QtWidgets.QFileDialog(self)
             dialog.setWindowModality(QtCore.Qt.WindowModal)
-            dialog.setAcceptMode((QtWidgets.QFileDialog.AcceptSave))
+            dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
 
-            if dialog.exec_() != QtWidgets.QDialog.Accepted:
+            if (dialog.exec_() != QtWidgets.QDialog.Accepted):
                 return False
-            return self.save_file(dialog.selectedFiles()[0])
+            return self.save_file(filename=dialog.selectedFiles())
 
         save_as_action = QtWidgets.QAction(
             QtGui.QIcon("file-export.svg"), "Save as", self)
@@ -111,7 +108,7 @@ class MainWindow(QtWidgets.QMainWindow):
         save_as_action.triggered.connect(save_as)
 
         def autosave():
-            thread = MyThread()
+            thread = MyThread(self)
 
             def som(num):
                 if num == 0:
@@ -135,8 +132,11 @@ class MainWindow(QtWidgets.QMainWindow):
         exit_action.setShortcut("Ctrl+F4")
         exit_action.triggered.connect(self.close)
 
-        file_actions = [new_file_action, new_window_action, "sep", open_file_action, "sep", save_action,
-                        save_as_action, autosave_action, "sep", settings_action, "sep", exit_action]
+        file_actions = [new_file_action, new_window_action, "sep",
+                        open_file_action, "sep",
+                        save_action, save_as_action, autosave_action, "sep",
+                        settings_action, "sep",
+                        exit_action]
 
         for action in file_actions:
             if action == "sep":
@@ -214,8 +214,11 @@ class MainWindow(QtWidgets.QMainWindow):
         move_line_up = QtWidgets.QAction("Move line up", self)
         move_line_down = QtWidgets.QAction("Move line down", self)
 
-        selection_actions = [select_all_action, "sep", duplicate_selection, "sep",
-                             copy_line_up, copy_line_down, "sep", move_line_up, move_line_down]
+        selection_actions = [select_all_action, "sep",
+                             duplicate_selection, "sep",
+                             copy_line_up, copy_line_down, "sep",
+                             move_line_up, move_line_down]
+
         for action in selection_actions:
             if action == "sep":
                 selection_menu.addSeparator()
@@ -284,14 +287,13 @@ class MainWindow(QtWidgets.QMainWindow):
             QtGui.QIcon("medal.svg"), "Send feedback", self)
 
         def about_handler():
-
             about = self.read_file("about.txt")
 
             message = QtWidgets.QMessageBox()
             message.about(self, "About King's Editor", about)
 
-        about_action = QtWidgets.QAction(
-            QtGui.QIcon("info-circle.svg"), "About King's Editor", self)
+        about_action = QtWidgets.QAction(QtGui.QIcon(
+            "info-circle.svg"), "About King's Editor", self)
         about_action.triggered.connect(about_handler)
 
         help_actions = [view_help_action, documentation_action, release_notes_action, keybd_shortcut, tips_and_tricks_action, join_us_action,
@@ -339,14 +341,11 @@ class MainWindow(QtWidgets.QMainWindow):
             f"Line {line_number} | Col {column_number}")
 
     def read_file(self, filename):
-
         text_in_file = ""
 
         with open(filename) as file:
-
             for line in file:
                 text_in_file += line
-                
         return text_in_file
 
     def load_file(self, filename):
@@ -379,11 +378,11 @@ class MainWindow(QtWidgets.QMainWindow):
         shown_name = self.current_file
 
         if self.current_file == "":
-            shown_name = "untitled.txt[*]"
-        if type(shown_name) == tuple:
+            shown_name = "untitled.txt[*] - King's Editor"
+        if type(shown_name) == tuple or type(shown_name) == list:
             shown_name = shown_name[0]
             shown_name = shown_name.split("/")
-            shown_name = shown_name[-1] + "[*]"
+            shown_name = shown_name[-1] + " - King's Editor[*]"
         self.setWindowFilePath(shown_name)
         self.setWindowTitle(shown_name)
 
@@ -394,12 +393,12 @@ class MainWindow(QtWidgets.QMainWindow):
         if (file.open(QtCore.QIODevice.WriteOnly | QtCore.QIODevice.Text)):
             out = QtCore.QTextStream(file)
             out << self.text_editor.toPlainText()
-            self.setWindowTitle(f"{filename[0]}[*] - Code Dragon")
+            self.setWindowTitle(f"{filename[0]}[*] - King's Editor")
 
             if not (file.commit()):
-                error_message = f"Cannot write file {QtCore.QDir.toNativeSeparators(filename)}:\n{file.errorString()}"
+                error_message = f"Cannot write file {QtCore.QDir.toNativeSeparators(filename[0])}:\n{file.errorString()}"
         else:
-            error_message = f"Cannot open file {QtCore.QDir.toNativeSeparators(filename)} for writing:\n{file.errorString()}"
+            error_message = f"Cannot open file {QtCore.QDir.toNativeSeparators(filename[0])} for writing:\n{file.errorString()}"
 
         QtGui.QGuiApplication.restoreOverrideCursor()
 
@@ -434,7 +433,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if geometry is None:
             availableGeometry = self.screen().availableGeometry()
-            self.resize(availableGeometry.width()/3, availableGeometry.height()/2)
+            self.resize(availableGeometry.width()/3,
+                        availableGeometry.height()/2)
             self.move((availableGeometry.width() - self.width()) / 2,
                       (availableGeometry.height() - self.height())/2)
 
@@ -455,6 +455,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def main():
+    import sys
+
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
     sys.exit(app.exec_())
