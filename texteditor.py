@@ -1,31 +1,128 @@
 from time import sleep
 from PyQt5 import QtGui, QtWidgets, QtCore
+from typing import List, Callable
+
+
+class Settings(QtWidgets.QDialog):
+
+    def __init__(self):
+        super().__init__()
+        self.setup_UI()
+
+    def setup_UI(self):
+        self.setWindowTitle("Settings - King's Editor")
+
+        list_widget = QtWidgets.QListWidget(self)
+
+        def mapper(item):
+            if item == "Saving":
+                saving_setting()
+            elif item == "Formatting":
+                formatting_settings()
+
+        def saving_setting():
+            stacked_widget.setCurrentWidget(saving_frame)
+
+        def formatting_settings():
+            stacked_widget.setCurrentWidget(formatting_frame)
+
+        QtWidgets.QListWidgetItem("Saving", list_widget)
+        QtWidgets.QListWidgetItem("Formatting", list_widget)
+        QtWidgets.QListWidgetItem("Status bar", list_widget)
+
+        list_widget.currentItemChanged.connect(
+            lambda: mapper(list_widget.currentItem().text()))
+
+        saving_frame = QtWidgets.QFrame(self)
+        saving_layout = QtWidgets.QGridLayout()
+        autosave_label = QtWidgets.QLabel(
+            "Autosave time interval (s): ", parent=saving_frame)
+        autosave_time = QtWidgets.QSpinBox(parent=saving_frame)
+        autosave_time.setMinimum(5)
+        saving_layout.addWidget(autosave_label, 1, 1)
+        saving_layout.addWidget(autosave_time, 1, 2)
+        saving_frame.setLayout(saving_layout)
+
+        formatting_frame = QtWidgets.QFrame(self)
+        formatting_layout = QtWidgets.QGridLayout()
+        font_label = QtWidgets.QLabel("Font: ", parent=formatting_frame)
+        font = QtWidgets.QFontComboBox(parent=formatting_frame)
+        font_size_label = QtWidgets.QLabel(
+            "Font Size: ", parent=formatting_frame)
+        font_size = QtWidgets.QSpinBox(parent=formatting_frame)
+        font_size.setMinimum(8)
+        font_size.setMaximum(150)
+        text_color_label = QtWidgets.QLabel(
+            "Text Color: ", parent=formatting_frame)
+        text_color = QtWidgets.QPushButton(
+            "Pick a color", parent=formatting_frame)
+        text_color.clicked.connect(self.change_color)
+        tab_size_label = QtWidgets.QLabel(
+            "Tab Size: ", parent=formatting_frame)
+        tab_size = QtWidgets.QSpinBox(parent=formatting_frame)
+        tab_size.setRange(2, 8)
+
+        formatting_layout.addWidget(font_label, 1, 1)
+        formatting_layout.addWidget(font, 1, 2)
+        formatting_layout.addWidget(font_size_label, 2, 1)
+        formatting_layout.addWidget(font_size, 2, 2)
+        formatting_layout.addWidget(text_color_label, 3, 1)
+        formatting_layout.addWidget(text_color, 3, 2)
+        formatting_layout.addWidget(tab_size_label, 4, 1)
+        formatting_layout.addWidget(tab_size, 4, 2)
+        formatting_frame.setLayout(formatting_layout)
+
+        status_bar_frame = QtWidgets.QFrame(self)
+        status_bar_layout = QtWidgets.QVBoxLayout()
+
+        status_bar_frame.setLayout(status_bar_layout)
+
+        stacked_widget = QtWidgets.QStackedWidget(self)
+        stacked_widget.setFixedSize(QtCore.QSize(400, 400))
+        stacked_widget.addWidget(saving_frame)
+        stacked_widget.addWidget(formatting_frame)
+        stacked_widget.addWidget(status_bar_frame)
+
+        self.settings_layout = QtWidgets.QHBoxLayout()
+        self.settings_layout.addWidget(list_widget)
+        self.settings_layout.addWidget(stacked_widget)
+
+        self.setLayout(self.settings_layout)
+        self.exec_()
+
+    def change_color(self):
+        color_dialog = QtWidgets.QColorDialog()
+        self.settings_layout.addWidget(color_dialog)
 
 
 class MyThread(QtCore.QThread):
 
-    change_value = QtCore.pyqtSignal(int)
+    value = QtCore.pyqtSignal(int)
+    autosave_time = 8
+    autosave_enabled = True
 
     def run(self):
-
-        counter = 1
-
-        while counter:
-            sleep(8)
-            self.change_value.emit(counter)
-            counter += 1
+        while self.autosave_enabled:
+            sleep(self.autosave_time)
+            self.value.emit(1)
+        else:
+            self.quit()
 
 
 class MainWindow(QtWidgets.QMainWindow):
 
     current_file = ""
-    save = []  # A workaround for the encapsulated save function in create_menu_bar
+    # A workaround for the encapsulated save function in create_menu_bar
+    save: List[Callable] = []
 
     def __init__(self):
         super().__init__()
         self.init_UI()
 
-    def init_UI(self):
+    def init_UI(self) -> None:
+        """
+        Sets up the UI and builds the window
+        """
         QtCore.QCoreApplication.setOrganizationName("King Inc")
         QtCore.QCoreApplication.setApplicationName("King's Editor")
         QtCore.QCoreApplication.setApplicationVersion("0.0.8")
@@ -48,9 +145,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.show()
 
-    def create_menu_bar(self):
+    def create_menu_bar(self) -> None:
+        """
+        Creates the menu bar
+        """
 
         self.menu_bar = self.menuBar()
+
         file_menu = self.menu_bar.addMenu("File")
 
         def new_file():
@@ -64,7 +165,7 @@ class MainWindow(QtWidgets.QMainWindow):
         new_file_action.triggered.connect(new_file)
 
         def new_window():
-            new_win = MainWindow()
+            MainWindow()
 
         new_window_action = QtWidgets.QAction(
             QtGui.QIcon("window-restore.svg"), "New Window", self)
@@ -82,18 +183,22 @@ class MainWindow(QtWidgets.QMainWindow):
         open_file_action.setShortcut("Ctrl+O")
         open_file_action.triggered.connect(open_file)
 
-        def save():
+        def save() -> bool:
+            """
+            Saves a pre-exisiting file.
+            """
             if self.current_file == "":
                 return save_as()
             else:
                 return self.save_file(self.current_file)
+
         self.save.append(save)
 
         save_action = QtWidgets.QAction(QtGui.QIcon("save.svg"), "Save", self)
         save_action.setShortcut("Ctrl+S")
         save_action.triggered.connect(save)
 
-        def save_as():
+        def save_as() -> bool:
             dialog = QtWidgets.QFileDialog(self)
             dialog.setWindowModality(QtCore.Qt.WindowModal)
             dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
@@ -108,25 +213,29 @@ class MainWindow(QtWidgets.QMainWindow):
         save_as_action.triggered.connect(save_as)
 
         def autosave():
-            thread = MyThread(self)
-
-            def som(num):
-                if num == 0:
-                    return False
-                save()
-
-            if save():
-                thread.change_value.connect(som)
-            thread.start()
+            if autosave_action.isChecked():
+                try:
+                    if not self.thread.isRunning():
+                        self.thread = MyThread()
+                except AttributeError:
+                    self.thread = MyThread()
+                finally:
+                    self.thread.start()
+                self.thread.value.connect(lambda num: save())
+            else:
+                self.thread.autosave_enabled = False
 
         autosave_action = QtWidgets.QAction(
             QtGui.QIcon("clock.svg"), "Autosave", self)
         autosave_action.setShortcut("Ctrl+Alt+S")
-        autosave_action.triggered.connect(autosave)
-
+        autosave_action.setCheckable(True)
+        autosave_action.setChecked(False)
+        autosave_action.triggered.connect(lambda: autosave())
         settings_action = QtWidgets.QAction(
             QtGui.QIcon("cogs.svg"), "Settings", self)
         settings_action.setShortcut("Ctrl+,")
+
+        settings_action.triggered.connect(lambda: Settings())
 
         exit_action = QtWidgets.QAction(QtGui.QIcon("times.svg"), "Exit", self)
         exit_action.setShortcut("Ctrl+F4")
@@ -315,6 +424,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.text_editor = QtWidgets.QPlainTextEdit()
         self.text_editor.textChanged.connect(self.cursor_position_update)
         self.text_editor.textChanged.connect(self.document_was_modified)
+
         self.setCentralWidget(self.text_editor)
 
     def document_was_modified(self):
@@ -324,6 +434,7 @@ class MainWindow(QtWidgets.QMainWindow):
         cursor = self.text_editor.textCursor()
 
         line_number = cursor.blockNumber() + 1
+
         column_number = cursor.columnNumber()
 
         self.status_bar.showMessage(
@@ -333,14 +444,23 @@ class MainWindow(QtWidgets.QMainWindow):
         cursor = self.text_editor.textCursor()
 
         line_number = cursor.blockNumber() + 1
+
         column_number = cursor.columnNumber()
 
+        tab_size: int = 4
+
+        self.text_editor.setTabStopDistance(
+            QtGui.QFontMetricsF.horizontalAdvance(
+                QtGui.QFontMetricsF(QtGui.QFont("Arial")), " ") * tab_size)
+
         self.status_bar = self.statusBar()
+        self.status_bar.addPermanentWidget(
+            QtWidgets.QLabel(f"Spaces: {tab_size}"))
         self.status_bar.showMessage("Ready")
         self.status_bar.showMessage(
             f"Line {line_number} | Col {column_number}")
 
-    def read_file(self, filename):
+    def read_file(self, filename) -> str:
         text_in_file = ""
 
         with open(filename) as file:
@@ -365,10 +485,7 @@ class MainWindow(QtWidgets.QMainWindow):
         QtGui.QGuiApplication.restoreOverrideCursor()
 
         self.set_current_file(filename)
-        self.status_bar.showMessage("File loaded", 2000)
-
-    def stripped_name(self, full_filename):
-        return QtCore.QFileInfo(full_filename).fileName()
+        self.status_bar.showMessage("File loaded", 3000)
 
     def set_current_file(self, filename):
         self.current_file = filename
@@ -382,11 +499,11 @@ class MainWindow(QtWidgets.QMainWindow):
         if type(shown_name) == tuple or type(shown_name) == list:
             shown_name = shown_name[0]
             shown_name = shown_name.split("/")
-            shown_name = shown_name[-1] + " - King's Editor[*]"
+            shown_name = shown_name[-1] + "[*] - King's Editor"
         self.setWindowFilePath(shown_name)
         self.setWindowTitle(shown_name)
 
-    def save_file(self, filename):
+    def save_file(self, filename) -> bool:
         error_message = ""
         QtGui.QGuiApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         file = QtCore.QSaveFile(filename[0])
@@ -412,7 +529,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.status_bar.showMessage("File Saved", 2000)
         return True
 
-    def maybe_save(self):
+    def maybe_save(self) -> bool:
         if not self.text_editor.document().isModified():
             return True
 
@@ -433,8 +550,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         if geometry is None:
             availableGeometry = self.screen().availableGeometry()
-            self.resize(availableGeometry.width()/3,
-                        availableGeometry.height()/2)
+            self.resize(availableGeometry.width()/3, availableGeometry.he
+                        ()/2)
             self.move((availableGeometry.width() - self.width()) / 2,
                       (availableGeometry.height() - self.height())/2)
 
@@ -458,7 +575,7 @@ def main():
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
+    MainWindow()
     sys.exit(app.exec_())
 
 
