@@ -30,13 +30,11 @@ class Settings(QtWidgets.QDialog):
         QtWidgets.QListWidgetItem("Formatting", list_widget)
         QtWidgets.QListWidgetItem("Status bar", list_widget)
 
-        list_widget.currentItemChanged.connect(
-            lambda: mapper(list_widget.currentItem().text()))
+        list_widget.currentItemChanged.connect(lambda: mapper(list_widget.currentItem().text()))
 
         saving_frame = QtWidgets.QFrame(self)
         saving_layout = QtWidgets.QGridLayout()
-        autosave_label = QtWidgets.QLabel(
-            "Autosave time interval (s): ", parent=saving_frame)
+        autosave_label = QtWidgets.QLabel("Autosave time interval (s): ", parent=saving_frame)
         autosave_time = QtWidgets.QSpinBox(parent=saving_frame)
         autosave_time.setMinimum(5)
         saving_layout.addWidget(autosave_label, 1, 1)
@@ -47,18 +45,14 @@ class Settings(QtWidgets.QDialog):
         formatting_layout = QtWidgets.QGridLayout()
         font_label = QtWidgets.QLabel("Font: ", parent=formatting_frame)
         font = QtWidgets.QFontComboBox(parent=formatting_frame)
-        font_size_label = QtWidgets.QLabel(
-            "Font Size: ", parent=formatting_frame)
+        font_size_label = QtWidgets.QLabel("Font Size: ", parent=formatting_frame)
         font_size = QtWidgets.QSpinBox(parent=formatting_frame)
         font_size.setMinimum(8)
         font_size.setMaximum(150)
-        text_color_label = QtWidgets.QLabel(
-            "Text Color: ", parent=formatting_frame)
-        text_color = QtWidgets.QPushButton(
-            "Pick a color", parent=formatting_frame)
+        text_color_label = QtWidgets.QLabel("Text Color: ", parent=formatting_frame)
+        text_color = QtWidgets.QPushButton("Pick a color", parent=formatting_frame)
         text_color.clicked.connect(self.change_color)
-        tab_size_label = QtWidgets.QLabel(
-            "Tab Size: ", parent=formatting_frame)
+        tab_size_label = QtWidgets.QLabel("Tab Size: ", parent=formatting_frame)
         tab_size = QtWidgets.QSpinBox(parent=formatting_frame)
         tab_size.setRange(2, 8)
 
@@ -159,16 +153,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.text_editor.clear()
                 self.set_current_file("")
 
-        new_file_action = QtWidgets.QAction(
-            QtGui.QIcon("file-alt.svg"), "New File", self)
+        new_file_action = QtWidgets.QAction(QtGui.QIcon("file-alt.svg"), "New File", self)
         new_file_action.setShortcut("Ctrl+N")
         new_file_action.triggered.connect(new_file)
 
         def new_window():
             MainWindow()
 
-        new_window_action = QtWidgets.QAction(
-            QtGui.QIcon("window-restore.svg"), "New Window", self)
+        new_window_action = QtWidgets.QAction(QtGui.QIcon("window-restore.svg"), "New Window", self)
         new_window_action.setShortcut("Ctrl+Shift+N")
         new_window_action.triggered.connect(new_window)
 
@@ -178,8 +170,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 if not filename == "":
                     self.load_file(filename)
 
-        open_file_action = QtWidgets.QAction(
-            QtGui.QIcon("file-import.svg"), "Open File", self)
+        open_file_action = QtWidgets.QAction(QtGui.QIcon("file-import.svg"), "Open File", self)
         open_file_action.setShortcut("Ctrl+O")
         open_file_action.triggered.connect(open_file)
 
@@ -207,8 +198,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 return False
             return self.save_file(filename=dialog.selectedFiles())
 
-        save_as_action = QtWidgets.QAction(
-            QtGui.QIcon("file-export.svg"), "Save as", self)
+        save_as_action = QtWidgets.QAction(QtGui.QIcon("file-export.svg"), "Save as", self)
         save_as_action.setShortcut("Ctrl+Shift+S")
         save_as_action.triggered.connect(save_as)
 
@@ -225,14 +215,12 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 self.thread.autosave_enabled = False
 
-        autosave_action = QtWidgets.QAction(
-            QtGui.QIcon("clock.svg"), "Autosave", self)
+        autosave_action = QtWidgets.QAction(QtGui.QIcon("clock.svg"), "Autosave", self)
         autosave_action.setShortcut("Ctrl+Alt+S")
         autosave_action.setCheckable(True)
         autosave_action.setChecked(False)
         autosave_action.triggered.connect(lambda: autosave())
-        settings_action = QtWidgets.QAction(
-            QtGui.QIcon("cogs.svg"), "Settings", self)
+        settings_action = QtWidgets.QAction(QtGui.QIcon("cogs.svg"), "Settings", self)
         settings_action.setShortcut("Ctrl+,")
 
         settings_action.triggered.connect(lambda: Settings())
@@ -255,12 +243,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         edit_menu = self.menu_bar.addMenu("Edit")
 
-        undo_action = QtWidgets.QAction(
-            QtGui.QIcon("undo-alt.svg"), "Undo", self)
+        undo_action = QtWidgets.QAction(QtGui.QIcon("undo-alt.svg"), "Undo", self)
         undo_action.setShortcut("Ctrl+Z")
 
-        redo_action = QtWidgets.QAction(
-            QtGui.QIcon("redo-alt.svg"), "Redo", self)
+        redo_action = QtWidgets.QAction(QtGui.QIcon("redo-alt.svg"), "Redo", self)
         redo_action.setShortcut("Ctrl+Y")
 
         copy_action = QtWidgets.QAction(QtGui.QIcon("copy.svg"), "Copy", self)
@@ -271,20 +257,16 @@ class MainWindow(QtWidgets.QMainWindow):
         cut_action.setShortcut("Ctrl+X")
         cut_action.setEnabled(False)
 
-        paste_action = QtWidgets.QAction(
-            QtGui.QIcon("paste.svg"), "Paste", self)
+        paste_action = QtWidgets.QAction(QtGui.QIcon("paste.svg"), "Paste", self)
         paste_action.setShortcut("Ctrl+V")
 
-        delete_action = QtWidgets.QAction(
-            QtGui.QIcon("trash-alt.svg"), "Delete", self)
+        delete_action = QtWidgets.QAction(QtGui.QIcon("trash-alt.svg"), "Delete", self)
         delete_action.setShortcut("Del")
 
-        search_with_action = QtWidgets.QAction(
-            QtGui.QIcon("question.svg"), "Search with DDG", self)
+        search_with_action = QtWidgets.QAction(QtGui.QIcon("question.svg"), "Search with DDG", self)
         search_with_action.setShortcut("Ctrl+?")
 
-        find_action = QtWidgets.QAction(
-            QtGui.QIcon("search.svg"), "Find", self)
+        find_action = QtWidgets.QAction(QtGui.QIcon("search.svg"), "Find", self)
         find_action.setShortcut("Ctrl+F")
 
         replace_action = QtWidgets.QAction("Replace", self)
@@ -293,15 +275,16 @@ class MainWindow(QtWidgets.QMainWindow):
         goto_action = QtWidgets.QAction("Go to...", self)
         goto_action.setShortcut("Ctrl+G")
 
-        toggle_line_comment = QtWidgets.QAction(
-            QtGui.QIcon("hashtag.svg"), "Toggle line comment", self)
+        toggle_line_comment = QtWidgets.QAction(QtGui.QIcon("hashtag.svg"), "Toggle line comment", self)
         toggle_line_comment.setShortcut("Ctrl+/")
 
         toggle_block_comment = QtWidgets.QAction("Toggle block comment", self)
         toggle_block_comment.setShortcut("Ctrl+Shift+A")
 
-        edit_actions = [undo_action, redo_action, "sep", copy_action, cut_action, paste_action, delete_action, "sep", search_with_action, "sep",
-                        find_action, replace_action, goto_action, "sep"]
+        edit_actions = [undo_action, redo_action, "sep",
+                        copy_action, cut_action, paste_action, delete_action, "sep",
+                        search_with_action, "sep",
+                        find_action, replace_action, goto_action]
 
         for action in edit_actions:
             if action == "sep":
@@ -365,35 +348,25 @@ class MainWindow(QtWidgets.QMainWindow):
         view_help_action = QtWidgets.QAction("View help", self)
         view_help_action.setShortcut("F1")
 
-        documentation_action = QtWidgets.QAction(
-            QtGui.QIcon("table.svg"), "Documentation", self)
+        documentation_action = QtWidgets.QAction(QtGui.QIcon("table.svg"), "Documentation", self)
 
-        release_notes_action = QtWidgets.QAction(
-            QtGui.QIcon("list.svg"), "Release notes", self)
+        release_notes_action = QtWidgets.QAction(QtGui.QIcon("list.svg"), "Release notes", self)
 
-        keybd_shortcut = QtWidgets.QAction(QtGui.QIcon(
-            "toolbox.svg"), "Keyboard shortcut reference", self)
+        keybd_shortcut = QtWidgets.QAction(QtGui.QIcon("toolbox.svg"), "Keyboard shortcut reference", self)
 
-        tips_and_tricks_action = QtWidgets.QAction(
-            QtGui.QIcon("info.svg"), "Tips and tricks", self)
+        tips_and_tricks_action = QtWidgets.QAction(QtGui.QIcon("info.svg"), "Tips and tricks", self)
 
-        join_us_action = QtWidgets.QAction(QtGui.QIcon(
-            "twitter.svg"), "Join us on twitter", self)
+        join_us_action = QtWidgets.QAction(QtGui.QIcon("twitter.svg"), "Join us on twitter", self)
 
-        feature_request_action = QtWidgets.QAction(
-            QtGui.QIcon("inbox.svg"), "Feature request", self)
+        feature_request_action = QtWidgets.QAction(QtGui.QIcon("inbox.svg"), "Feature request", self)
 
-        report_issue_action = QtWidgets.QAction(
-            QtGui.QIcon("sad-tear.svg"), "Report issue", self)
+        report_issue_action = QtWidgets.QAction(QtGui.QIcon("sad-tear.svg"), "Report issue", self)
 
-        view_license_action = QtWidgets.QAction(
-            QtGui.QIcon("thumbs-up.svg"), "View license", self)
+        view_license_action = QtWidgets.QAction(QtGui.QIcon("thumbs-up.svg"), "View license", self)
 
-        check_for_updates_action = QtWidgets.QAction(
-            QtGui.QIcon("level-up-alt.svg"), "Check for updates", self)
+        check_for_updates_action = QtWidgets.QAction(QtGui.QIcon("level-up-alt.svg"), "Check for updates", self)
 
-        send_feeback_action = QtWidgets.QAction(
-            QtGui.QIcon("medal.svg"), "Send feedback", self)
+        send_feeback_action = QtWidgets.QAction(QtGui.QIcon("medal.svg"), "Send feedback", self)
 
         def about_handler():
             about = self.read_file("about.txt")
@@ -401,8 +374,7 @@ class MainWindow(QtWidgets.QMainWindow):
             message = QtWidgets.QMessageBox()
             message.about(self, "About King's Editor", about)
 
-        about_action = QtWidgets.QAction(QtGui.QIcon(
-            "info-circle.svg"), "About King's Editor", self)
+        about_action = QtWidgets.QAction(QtGui.QIcon("info-circle.svg"), "About King's Editor", self)
         about_action.triggered.connect(about_handler)
 
         help_actions = [view_help_action, documentation_action, release_notes_action, keybd_shortcut, tips_and_tricks_action, join_us_action,
@@ -472,8 +444,7 @@ class MainWindow(QtWidgets.QMainWindow):
         file = QtCore.QFile(filename[0])
 
         if not (file.open(QtCore.QFile.ReadOnly | QtCore.QFile.Text)):
-            QtWidgets.QMessageBox.warning(
-                self, "Application", f"Cannot read file {QtCore.QDir.toNativeSeparators(filename[0])}:\n{file.errorString()}.")
+            QtWidgets.QMessageBox.warning(self, "Application", f"Cannot read file {QtCore.QDir.toNativeSeparators(filename[0])}:\n{file.errorString()}.")
             return
 
         input_stream = QtCore.QTextStream(file)
@@ -544,23 +515,19 @@ class MainWindow(QtWidgets.QMainWindow):
         return True
 
     def read_settings(self):
-        settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(
-        ), QtCore.QCoreApplication.applicationName())
+        settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(), QtCore.QCoreApplication.applicationName())
         geometry = settings.value("geometry", QtCore.QByteArray())
 
         if geometry is None:
             availableGeometry = self.screen().availableGeometry()
-            self.resize(availableGeometry.width()/3, availableGeometry.he
-                        ()/2)
-            self.move((availableGeometry.width() - self.width()) / 2,
-                      (availableGeometry.height() - self.height())/2)
+            self.resize(availableGeometry.width()/3, availableGeometry.he()/2)
+            self.move((availableGeometry.width() - self.width()) / 2, (availableGeometry.height() - self.height())/2)
 
         else:
             self.restoreGeometry(geometry)
 
     def write_settings(self):
-        settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(
-        ), QtCore.QCoreApplication.applicationName())
+        settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(), QtCore.QCoreApplication.applicationName())
         settings.setValue("geometry", self.saveGeometry())
 
     def closeEvent(self, event):
