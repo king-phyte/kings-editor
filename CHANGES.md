@@ -1,3 +1,11 @@
++ v0.1.1
++ [Added]: Toggle Status bar
++ [Added]: Copy, cut and paste from Edit menu and or standard toolbar
++ [Added]: Undo and redo icons to standard toolbar
++ [Added]: Undo and redo from Edit menu and or standard toolbar
++ [Added]: Auto-complete (), {}, "", ''
++ [Misc]: Improved project structure and separe files for classes
+
 + v0.1.0
 + [Added]: Word Wrap
 + [Added]: Fullscreen feature
