@@ -1,3 +1,11 @@
++ v0.1.2
++ [Added]: Current line highlighting
++ [Added]: Line numbers
++ [Fixed]: Tab size not saved on application exit
++ [Fixed]: Broken line and column number tracker in statusbar
++ [Fixed]: Document not showing modified status
++ [Fixed]: Word Wrap not working
+
 + v0.1.1
 + [Added]: Toggle Status bar
 + [Added]: Copy, cut and paste from Edit menu and or standard toolbar
