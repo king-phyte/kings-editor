@@ -2,8 +2,8 @@ from time import sleep
 from PyQt5 import QtGui, QtWidgets, QtCore
 from typing import List, Callable
 from thread import MyThread
-from settings import Settings
 from texteditor import TextEditor
+from settings import Settings, Formatting
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -31,8 +31,9 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle(self.window_title)
         self.setMinimumSize(min_width, min_height)
         self.setWindowIcon(icon)
+        self.read_settings()
         self.create_menu_bar()
-        self.text_editor = TextEditor()
+        self.create_text_editor()
         self.create_status_bar()
 
         QtGui.QGuiApplication.setFallbackSessionManagementEnabled(False)
@@ -40,10 +41,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.set_current_file("")
 
-        self.setCentralWidget(self.text_editor)
-        self.text_editor.setFocus()
-
-        self.read_settings()
         self.show()
 
     def create_menu_bar(self) -> None:
@@ -132,11 +129,11 @@ class MainWindow(QtWidgets.QMainWindow):
         settings_action = QtWidgets.QAction(
             QtGui.QIcon("./svgs/cogs.svg"), "Settings", self)
         settings_action.setShortcut("Ctrl+,")
-        settings_action.triggered.connect(lambda: Settings())
+        settings_action.triggered.connect(self.open_settings)
 
         exit_action = QtWidgets.QAction(
             QtGui.QIcon("./svgs/times.svg"), "Exit", self)
-        exit_action.setShortcut("Ctrl+F4")
+        exit_action.setShortcut("Alt+F4")
         exit_action.triggered.connect(self.close)
 
         file_actions = [new_file_action, new_window_action, "sep",
@@ -251,7 +248,6 @@ class MainWindow(QtWidgets.QMainWindow):
         word_wrap_action = QtWidgets.QAction("Word wrap", self)
         word_wrap_action.setShortcut("Alt+Z")
         word_wrap_action.setCheckable(True)
-        word_wrap_action.setChecked(False)
         word_wrap_action.triggered.connect(word_wrap)
 
         def fullscreen_handler():
@@ -268,7 +264,6 @@ class MainWindow(QtWidgets.QMainWindow):
         fullscreen_action = QtWidgets.QAction("Fullscreen", self)
         fullscreen_action.setShortcut("F11")
         fullscreen_action.setCheckable(True)
-        fullscreen_action.setChecked(False)
         fullscreen_action.triggered.connect(fullscreen_handler)
 
         page_layout_action = QtWidgets.QAction("Page layout", self)
@@ -351,10 +346,28 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.setMenuBar(self.menu_bar)
 
+    def create_text_editor(self):
+        self.text_editor = TextEditor()
+        self.setCentralWidget(self.text_editor)
+        self.text_editor.setTabStopDistance(QtGui.QFontMetricsF.horizontalAdvance(
+            QtGui.QFontMetricsF(QtGui.QFont("Arial")), " ") * self.tab_size)
+        self.text_editor.cursorPositionChanged.connect(
+            self.update_cursor_position)
+        self.text_editor.textChanged.connect(self.document_was_modified)
+        self.text_editor.setLineWrapMode(self.text_editor.NoWrap)
+        self.text_editor.setLineWrapMode(self.text_editor.WidgetWidth)
+        self.text_editor.blockCountChanged.connect(
+            self.text_editor.update_line_number_area_width)
+        self.text_editor.updateRequest.connect(
+            self.text_editor.update_line_number_area)
+        self.text_editor.update_line_number_area_width(0)
+
+        self.text_editor.setFocus()
+
     def document_was_modified(self):
         self.setWindowModified(self.text_editor.document().isModified())
 
-    def cursor_position_update(self):
+    def update_cursor_position(self):
         cursor = self.text_editor.textCursor()
 
         line_number = cursor.blockNumber() + 1
@@ -371,17 +384,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
         column_number = cursor.columnNumber()
 
-        tab_size: int = 4
-
-        self.text_editor.setTabStopDistance(
-            QtGui.QFontMetricsF.horizontalAdvance(
-                QtGui.QFontMetricsF(QtGui.QFont("Arial")), " ") * tab_size)
+        self.tab_size = self.updated_tab_size()
 
         self.status_bar = self.statusBar()
 
         def space_handler():
-            Settings()
-        spaces = QtWidgets.QPushButton(f"Spaces: {tab_size}")
+            self.open_settings()
+            self.text_editor.setTabStopDistance(QtGui.QFontMetricsF.horizontalAdvance(
+                QtGui.QFontMetricsF(QtGui.QFont("Arial")), " ") * self.tab_size)
+            spaces.setText(f"Spaces: {self.tab_size}")
+            self.text_editor.setFocus()
+
+        spaces = QtWidgets.QPushButton(f"Spaces: {self.tab_size}")
         spaces.setStyleSheet("border: none")
         spaces.clicked.connect(space_handler)
         self.status_bar.addPermanentWidget(spaces)
@@ -472,6 +486,10 @@ class MainWindow(QtWidgets.QMainWindow):
             return False
         return True
 
+    def open_settings(self):
+        Settings()
+        self.tab_size = self.updated_tab_size()
+
     def read_settings(self):
         settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(
         ), QtCore.QCoreApplication.applicationName())
@@ -487,22 +505,18 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.restoreGeometry(geometry)
 
+        self.tab_size = self.updated_tab_size()
+
     def write_settings(self):
         settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(
         ), QtCore.QCoreApplication.applicationName())
         settings.setValue("geometry", self.saveGeometry())
 
-    def onKeyPressEvent(self, event):
-        closing_char = self.character_list.get(event.text())
-
-        if closing_char:
-            char_cursor = self.text_editor.textCursor()
-            initial_char_position = char_cursor.position()
-
-            self.text_editor.insertPlainText(closing_char)
-            char_cursor.setPosition(initial_char_position)
-            self.text_editor.setTextCursor(char_cursor)
-        self.text_editor.keyPressEvent(event)
+    def updated_tab_size(self) -> int:
+        self.settings = QtCore.QSettings(QtCore.QCoreApplication.organizationName(
+        ), QtCore.QCoreApplication.applicationName())
+        tab_size = int(self.settings.value("tab-size", 4))
+        return tab_size
 
     def closeEvent(self, event):
         if self.maybe_save():
