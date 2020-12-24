@@ -1,0 +1,45 @@
+==== To-Do ====
+1. Settings window
+    + Tab Size
+    + Autosave Toggle
+    + Autosave time
+    + Font size
+    + Font color
+    + themes
+    + Toggle line number area
+    + Toggle current line highlighting
+2. Documentation and comments
+3. Status bar
+    + Show type of file and or language
+    + Change the current spaces widget to a button and redirect it to Settings
+4. Mutiple themes and colors
+5. Syntax highlighting
+6. Implement features on selection menu
+7. Split editor
+8. Tabbed documents
+9. Implement things on the help menu
+10. Use a buffer to read files
+11. Find References in code
+
+==== To Fix ====
+Tab size not updating right after settings window closes
+
+==== In Progress ====
+Settings Window
+
+==== Fixing ====
+
+
+==== Done ====
++ Word Wrap 
++ Implement features on edit menu - Undo, redo, cut, copy, paste from menu 
++ Toggle fullscreen 
++ Toggle Statusbar 
++ Separate the code into different files
++ Auto completer (for brackets)
++ Current line highlighting
+
+
+==== Fixed ====
+Document modified not showing
+Word Wrap not working
